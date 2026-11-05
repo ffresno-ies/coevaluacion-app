@@ -58,6 +58,8 @@ votacion-aula/
 
 ## 💻 Guía de Despliegue Multiplataforma
 
+En el ordenador donde quieras que haga de servidor debes hacer lo siguiente. Elige tu sistema operativo y pruebalo. 
+
 ### 🐧 1. Linux Mint
 ```bash
 sudo ufw allow 3000/tcp
