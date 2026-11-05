@@ -1,0 +1,8 @@
+# RÚBRICA DE EVALUACIÓN DE EXPOSICIÓN ORAL EN PÚBLICO
+# Instrucciones: Cada línea no vacía que no empiece por '#' se cargará como un criterio de evaluación.
+
+Contenido y Dominio del Tema: Claridad en la explicación, exactitud en los datos y rigor en las respuestas a preguntas.
+Estructura y Organización: Introducción clara, desarrollo coherente y conclusión sintetizada del trabajo.
+Expresión Oral y Lenguaje: Pronunciación clara, volumen adecuado, entonación dinámica y fluidez verbal sin muletillas.
+Lenguaje Corporal y Contacto Visual: Mirada dirigida a la audiencia, postura erguida, gestualidad natural y sin lectura directa de diapositivas.
+Soporte Visual y Recursos: Diapositivas limpias, legibles, uso adecuado de imágenes/gráficos y buen control del tiempo asignado.

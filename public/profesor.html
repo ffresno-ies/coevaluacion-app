@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Profesor - Coevaluación</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+  
+  <div id="loginModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6">
+      <div class="text-center space-y-2">
+        <div class="inline-flex bg-indigo-600/20 text-indigo-400 p-4 rounded-2xl mb-2 text-3xl border border-indigo-500/30">🔐</div>
+        <h2 class="text-2xl font-bold text-white">Acceso del Profesor</h2>
+        <p class="text-xs text-slate-400">Introduce las credenciales de administración.</p>
+      </div>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Usuario</label>
+          <input type="text" id="usernameInput" placeholder="admin" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-indigo-500 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Contraseña</label>
+          <input type="password" id="passwordInput" placeholder="••••••••" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-indigo-500 transition">
+        </div>
+        <div id="loginError" class="hidden text-rose-400 text-xs font-semibold text-center bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-xl">
+          ⚠️ Usuario o contraseña incorrectos. (admin/admin)
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm">
+          Iniciar Sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+      <div class="bg-indigo-600 text-white p-2 rounded-lg font-bold text-xl">👨‍🏫</div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight">Panel del Profesor</h1>
+        <p class="text-xs text-slate-400">Modo de Evaluación: <span id="evalModeBadge" class="font-bold text-indigo-400">Votación Simple 1-10</span></p>
+      </div>
+    </div>
+    <button onclick="handleLogout()" class="text-xs bg-slate-700 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-600 hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition">
+      Cerrar Sesión
+    </button>
+  </header>
+
+  <main id="teacherContent" class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8 opacity-20 pointer-events-none transition-all duration-300">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-indigo-400 mb-1 flex items-center gap-2">
+            <span>➕</span> Registrar Grupos o Alumnos
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">Introduce el nombre del grupo o alumno que expondrá.</p>
+        </div>
+        <form id="groupForm" class="flex gap-2" onsubmit="handleAddGroup(event)">
+          <input type="text" id="groupInput" placeholder="Ej. Grupo 1 - Robótica" required class="flex-1 bg-slate-900 border border-slate-700 focus:border-indigo-500 text-white text-sm rounded-xl px-4 py-2.5 outline-none transition">
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl transition text-sm flex items-center gap-1 shadow-lg shadow-indigo-600/30">
+            Añadir
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-amber-400 mb-1 flex items-center gap-2">
+            <span>📜</span> Configuración de Rúbrica
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">Sube un .txt para usar rúbrica, o reiníciala para volver al voto simple (1-10).</p>
+        </div>
+        <div class="flex gap-2">
+          <input type="file" id="rubricFileInput" accept=".txt" onchange="handleLoadRubricFile(event)" class="hidden">
+          <button onclick="document.getElementById('rubricFileInput').click()" class="flex-1 bg-slate-900 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-semibold py-2.5 px-3 rounded-xl text-xs transition text-center">
+            📂 Cargar Rúbrica (.txt)
+          </button>
+          <button onclick="handleClearRubric()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold py-2.5 px-3 rounded-xl text-xs transition">
+            🔄 Reiniciar Rúbrica
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <div>
+          <h2 class="text-base font-bold text-emerald-400 mb-1 flex items-center gap-2">
+            <span>⚡</span> Control de Votación
+          </h2>
+          <p class="text-xs text-slate-400 mb-2">Activa o pausa la ronda del equipo activo.</p>
+        </div>
+        <div class="flex items-center justify-between mt-2">
+          <div>
+            <p class="text-xs text-slate-400">Exponiendo Ahora:</p>
+            <p id="activeGroupName" class="text-lg font-bold text-white">Ninguno seleccionado</p>
+          </div>
+          <button id="toggleVoteBtn" onclick="handleToggleVoting()" disabled class="bg-slate-700 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold transition">
+            Activar / Pausar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 shadow-lg">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Modo Actual: <span id="modeDescription" class="text-white font-normal">Votación Simple sin Rúbrica (Calificación directa 1 al 10)</span></h3>
+        <span id="rubricCountBadge" class="hidden text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 rounded-full font-bold"></span>
+      </div>
+      <div id="rubricCriteriaList" class="flex flex-wrap gap-2 text-xs text-slate-300"></div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
+        <h2 class="font-bold text-slate-200 text-lg border-b border-slate-700 pb-3 flex justify-between items-center">
+          <span>Grupos de Clase</span>
+          <span id="groupCountBadge" class="bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-full font-mono">0</span>
+        </h2>
+        <div id="groupsList" class="space-y-3 max-h-[450px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col space-y-6">
+        <h2 class="font-bold text-slate-200 text-lg border-b border-slate-700 pb-3 flex justify-between items-center">
+          <span>Resultados Generales (Nota Media 1-10)</span>
+          <button onclick="handleResetSession()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-xl">Borrar Sesión Completa</button>
+        </h2>
+        
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 text-center">
+            <span class="text-xs text-slate-400 font-medium">Total Votos</span>
+            <p id="statTotalVotes" class="text-3xl font-extrabold text-indigo-400 mt-1">0</p>
+          </div>
+          <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 text-center">
+            <span class="text-xs text-slate-400 font-medium">Nota Media Final</span>
+            <p id="statAvgScore" class="text-3xl font-extrabold text-emerald-400 mt-1">0.0</p>
+          </div>
+          <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 text-center">
+            <span class="text-xs text-slate-400 font-medium">Nota Máxima</span>
+            <p id="statMaxScore" class="text-3xl font-extrabold text-amber-400 mt-1">-</p>
+          </div>
+        </div>
+
+        <div class="flex-1 min-h-[260px] bg-slate-900/40 rounded-xl p-4 border border-slate-700/40 flex items-center justify-center">
+          <canvas id="resultsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let appData = { votingActive: false, activeGroupIndex: null, groups: [], rubricCriteria: [] };
+    let chartInstance = null;
+    let socket = null;
+
+    if (sessionStorage.getItem('teacher_auth') === 'true') {
+      unlockTeacherPanel();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('usernameInput').value;
+      const pass = document.getElementById('passwordInput').value;
+
+      if (user === 'admin' && pass === 'admin') {
+        sessionStorage.setItem('teacher_auth', 'true');
+        unlockTeacherPanel();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem('teacher_auth');
+      window.location.reload();
+    }
+
+    function unlockTeacherPanel() {
+      document.getElementById('loginModal').classList.add('hidden');
+      const content = document.getElementById('teacherContent');
+      content.classList.remove('opacity-20', 'pointer-events-none');
+      
+      try {
+        socket = io();
+        socket.on('stateUpdate', (data) => {
+          appData = data;
+          render();
+        });
+      } catch(e) {}
+    }
+
+    function handleLoadRubricFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n')
+          .map(l => l.trim())
+          .filter(l => l.length > 0 && !l.startsWith('#'));
+
+        if (lines.length > 0) {
+          if (socket) socket.emit('updateRubric', lines);
+          alert(`¡Rúbrica cargada! ${lines.length} criterios activos.`);
+        } else {
+          alert('El archivo no contiene criterios válidos.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function handleClearRubric() {
+      if (socket) {
+        socket.emit('clearRubric');
+        alert('Rúbrica reiniciada. Los alumnos valorarán directamente del 1 al 10.');
+      }
+    }
+
+    function handleAddGroup(e) {
+      e.preventDefault();
+      const input = document.getElementById('groupInput');
+      const name = input.value.trim();
+      if (!name) return;
+      if (socket) socket.emit('addGroup', name);
+      input.value = '';
+    }
+
+    function handleRemoveGroup(idx) {
+      if (socket) socket.emit('removeGroup', idx);
+    }
+
+    function handleSelectActive(idx) {
+      if (socket) socket.emit('setActiveGroup', idx);
+    }
+
+    function handleToggleVoting() {
+      if (socket) socket.emit('toggleVoting');
+    }
+
+    function handleResetSession() {
+      if (confirm('¿Reiniciar toda la sesión? (Borrará grupos y restablecerá la votación simple)')) {
+        if (socket) socket.emit('resetSession');
+      }
+    }
+
+    function render() {
+      const isRubricActive = appData.rubricCriteria && appData.rubricCriteria.length > 0;
+      
+      document.getElementById('evalModeBadge').textContent = isRubricActive ? `Rúbrica (${appData.rubricCriteria.length} Criterios)` : "Votación Simple 1-10";
+      document.getElementById('evalModeBadge').className = isRubricActive ? "font-bold text-amber-400" : "font-bold text-indigo-400";
+
+      const criteriaContainer = document.getElementById('rubricCriteriaList');
+      const modeDesc = document.getElementById('modeDescription');
+      const countBadge = document.getElementById('rubricCountBadge');
+
+      if (isRubricActive) {
+        modeDesc.textContent = "Coevaluación por Rúbrica Personalizada";
+        countBadge.classList.remove('hidden');
+        countBadge.textContent = `${appData.rubricCriteria.length} Criterios`;
+        criteriaContainer.innerHTML = appData.rubricCriteria.map((c, i) => `
+          <span class="bg-slate-900 border border-amber-500/20 px-3 py-1.5 rounded-xl text-amber-300/90 font-medium">
+            ${i+1}. ${c}
+          </span>
+        `).join('');
+      } else {
+        modeDesc.textContent = "Votación Simple sin Rúbrica (Calificación directa 1 al 10)";
+        countBadge.classList.add('hidden');
+        criteriaContainer.innerHTML = `<p class="text-slate-500 text-xs italic">No hay archivo de rúbrica cargado. Los alumnos puntúan con un único selector del 1 al 10.</p>`;
+      }
+
+      const listEl = document.getElementById('groupsList');
+      document.getElementById('groupCountBadge').textContent = appData.groups.length;
+
+      if (appData.groups.length === 0) {
+        listEl.innerHTML = `<p class="text-slate-500 text-sm text-center py-8">No hay grupos añadidos aún.</p>`;
+      } else {
+        listEl.innerHTML = appData.groups.map((g, idx) => {
+          const isActive = appData.activeGroupIndex === idx;
+          return `
+            <div class="flex items-center justify-between p-3.5 rounded-xl border transition ${isActive ? 'bg-indigo-950/60 border-indigo-500/50' : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'}">
+              <div class="flex items-center gap-3">
+                <button onclick="handleSelectActive(${idx})" class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                  ${idx + 1}
+                </button>
+                <div>
+                  <h4 class="font-semibold text-sm text-white">${g.name}</h4>
+                  <p class="text-xs text-slate-400">${g.votes.length} votos • Media: <span class="font-bold text-emerald-400">${g.avgScore}</span></p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="handleSelectActive(${idx})" class="text-xs px-3 py-1.5 rounded-lg border font-semibold ${isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}">
+                  ${isActive ? 'Activo' : 'Presentar'}
+                </button>
+                <button onclick="handleRemoveGroup(${idx})" class="text-slate-500 hover:text-rose-400 p-1.5">✕</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const activeGroup = appData.groups[appData.activeGroupIndex];
+      const activeNameEl = document.getElementById('activeGroupName');
+      const toggleBtn = document.getElementById('toggleVoteBtn');
+
+      if (activeGroup) {
+        activeNameEl.textContent = activeGroup.name;
+        toggleBtn.disabled = false;
+        if (appData.votingActive) {
+          toggleBtn.textContent = 'Pausar Votación';
+          toggleBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-600/30';
+        } else {
+          toggleBtn.textContent = 'Activar Votación';
+          toggleBtn.className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-600/30';
+        }
+
+        document.getElementById('statTotalVotes').textContent = activeGroup.votes.length;
+        document.getElementById('statAvgScore').textContent = activeGroup.avgScore;
+        const max = activeGroup.votes.length ? Math.max(...activeGroup.votes.map(v => v.overallScore)).toFixed(1) : '-';
+        document.getElementById('statMaxScore').textContent = max;
+      } else {
+        activeNameEl.textContent = 'Ninguno seleccionado';
+        toggleBtn.disabled = true;
+        toggleBtn.className = 'bg-slate-700 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold';
+        document.getElementById('statTotalVotes').textContent = '0';
+        document.getElementById('statAvgScore').textContent = '0.0';
+        document.getElementById('statMaxScore').textContent = '-';
+      }
+
+      updateChart();
+    }
+
+    function updateChart() {
+      const ctx = document.getElementById('resultsChart').getContext('2d');
+      const labels = appData.groups.map(g => g.name);
+      const dataScores = appData.groups.map(g => parseFloat(g.avgScore) || 0);
+
+      if (!chartInstance) {
+        chartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Nota Media Final (1-10)',
+              data: dataScores,
+              backgroundColor: 'rgba(99, 102, 241, 0.7)',
+              borderColor: 'rgba(129, 140, 248, 1)',
+              borderWidth: 2,
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { min: 0, max: 10, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+              x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+      } else {
+        chartInstance.data.labels = labels;
+        chartInstance.data.datasets[0].data = dataScores;
+        chartInstance.update();
+      }
+    }
+  </script>
+</body>
+</html>

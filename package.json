@@ -1,0 +1,13 @@
+{
+  "name": "votacion-aula-rubricas",
+  "version": "3.4.0",
+  "description": "Sistema Híbrido de Coevaluación y Votación en Tiempo Real",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
