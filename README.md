@@ -18,7 +18,7 @@ La aplicación ofrece **dos modos de funcionamiento automáticos**:
 
 | Panel de Administración del Profesor (`/profesor`) | Portal de Coevaluación del Alumno (`/alumno`) |
 | :---: | :---: |
-| ![Panel del Profesor](image_8bf37c.jpg) | ![Portal del Alumno](image_8bf346.png) |
+| ![Panel del Profesor](profesor.png) | ![Portal del Alumno](alumno.png) |
 
 ---
 
