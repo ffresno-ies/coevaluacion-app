@@ -76,13 +76,3 @@ New-NetFirewallRule -DisplayName "Votacion Aula" -Direction Inbound -LocalPort 3
 npm install
 npm start
 ```
-
----
-
-## 📡 Resumen de Comandos de Red
-
-| Sistema Operativo | Comando para obtener IP | Comando Cortafuegos (Firewall) | URL Alumnos |
-| :--- | :--- | :--- | :--- |
-| **Linux Mint** | `hostname -I \| awk '{print $1}'` | `sudo ufw allow 3000/tcp` | `http://<IP-Linux>:3000/alumno` |
-| **macOS** | `ipconfig getifaddr en0` | Permitir aviso flotante / Ajustes de Red | `http://<IP-Mac>:3000/alumno` |
-| **Windows** | `ipconfig` *(IPv4)* | `New-NetFirewallRule ... -LocalPort 3000` | `http://<IP-Win>:3000/alumno` |
