@@ -1,4 +1,5 @@
-# 📊 Sistema de Coevaluación y Votación en Tiempo Real
+# <img width="640" height="640" alt="image" src="https://github.com/user-attachments/assets/634c8e74-5887-4b3c-b75d-f091e5f84eca" />
+ Sistema de Coevaluación y Votación en Tiempo Real
 
 Aplicación web ligera orientada a entornos educativos para realizar evaluaciones continuas entre compañeros durante presentaciones de trabajos en grupo. Diseñada para ser desplegada en el ordenador del profesor dentro de una red local (LAN/Wi-Fi de aula) sin depender de internet.
 
