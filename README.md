@@ -23,6 +23,8 @@ La aplicación ofrece **dos modos de funcionamiento automáticos**:
 | Portal de Coevaluación del Alumno (`/alumno`) |
 | :---: |
 | ![Portal del Alumno](alumno.png) |
+| :---: |
+| ![Portal del Alumno](alumno_rubrica.png) |
 
 ---
 
