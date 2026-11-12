@@ -10,6 +10,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
   
+  <!-- Modal de Login -->
   <div id="loginModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
     <div class="bg-slate-800 border border-slate-700 rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6">
       <div class="text-center space-y-2">
@@ -36,23 +37,58 @@
     </div>
   </div>
 
+  <!-- Modal para Editar Nombre de Grupo -->
+  <div id="editGroupModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <span>✏️</span> Editar Nombre de Equipo
+        </h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg p-1">✕</button>
+      </div>
+      <form onsubmit="handleSaveGroupEdit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nuevo Nombre del Grupo o Alumno</label>
+          <input type="text" id="editGroupNameInput" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-indigo-500 transition">
+        </div>
+        <div class="flex gap-2 justify-end pt-2">
+          <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-700 hover:bg-slate-600 text-slate-300 transition">
+            Cancelar
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
   <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center">
     <div class="flex items-center gap-3">
       <div class="bg-indigo-600 text-white p-2 rounded-lg font-bold text-xl">👨‍🏫</div>
       <div>
         <h1 class="font-bold text-lg leading-tight">Panel del Profesor</h1>
-        <p class="text-xs text-slate-400">Modo de Evaluación: <span id="evalModeBadge" class="font-bold text-indigo-400">Votación Simple 1-10</span></p>
+        <p class="text-xs text-slate-400">Modo de Evaluación: <span id="evalModeBadge" class="font-bold text-indigo-400">Votación Simple 0-10</span></p>
       </div>
     </div>
-    <button onclick="handleLogout()" class="text-xs bg-slate-700 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-600 hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition">
-      Cerrar Sesión
-    </button>
+    <div class="flex items-center gap-3">
+      <a href="/alumno" target="_blank" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 border border-slate-600 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+        <span>👨‍🎓</span> Ver Vista Alumno ↗
+      </a>
+      <button onclick="handleLogout()" class="text-xs bg-slate-700 hover:bg-rose-600/20 text-slate-300 hover:text-rose-400 border border-slate-600 hover:border-rose-500/30 px-3 py-1.5 rounded-xl transition">
+        Cerrar Sesión
+      </button>
+    </div>
   </header>
 
+  <!-- Main Content -->
   <main id="teacherContent" class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8 opacity-20 pointer-events-none transition-all duration-300">
     
+    <!-- Fila de Controles Superiores -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
+      <!-- Registro de Grupos -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
         <div>
           <h2 class="text-base font-bold text-indigo-400 mb-1 flex items-center gap-2">
@@ -68,12 +104,13 @@
         </form>
       </div>
 
+      <!-- Configuración de Rúbrica -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
         <div>
           <h2 class="text-base font-bold text-amber-400 mb-1 flex items-center gap-2">
             <span>📜</span> Configuración de Rúbrica
           </h2>
-          <p class="text-xs text-slate-400 mb-3">Sube un .txt para usar rúbrica, o reiníciala para volver al voto simple (1-10).</p>
+          <p class="text-xs text-slate-400 mb-3">Sube un .txt para usar rúbrica, o reiníciala para volver al voto simple (0-10).</p>
         </div>
         <div class="flex gap-2">
           <input type="file" id="rubricFileInput" accept=".txt" onchange="handleLoadRubricFile(event)" class="hidden">
@@ -86,6 +123,7 @@
         </div>
       </div>
 
+      <!-- Control de Votación Activa -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
         <div>
           <h2 class="text-base font-bold text-emerald-400 mb-1 flex items-center gap-2">
@@ -94,43 +132,62 @@
           <p class="text-xs text-slate-400 mb-2">Activa o pausa la ronda del equipo activo.</p>
         </div>
         <div class="flex items-center justify-between mt-2">
-          <div>
+          <div class="min-w-0 mr-3">
             <p class="text-xs text-slate-400">Exponiendo Ahora:</p>
-            <p id="activeGroupName" class="text-lg font-bold text-white">Ninguno seleccionado</p>
+            <p id="activeGroupName" class="text-lg font-bold text-white truncate">Ninguno seleccionado</p>
           </div>
-          <button id="toggleVoteBtn" onclick="handleToggleVoting()" disabled class="bg-slate-700 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold transition">
+          <button id="toggleVoteBtn" onclick="handleToggleVoting()" disabled class="bg-slate-700 text-slate-500 px-4 py-2 rounded-xl text-xs font-bold transition shrink-0">
             Activar / Pausar
           </button>
         </div>
       </div>
     </div>
 
+    <!-- Barra de Estado de Criterios / Rúbrica -->
     <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 shadow-lg">
       <div class="flex justify-between items-center mb-2">
-        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Modo Actual: <span id="modeDescription" class="text-white font-normal">Votación Simple sin Rúbrica (Calificación directa 1 al 10)</span></h3>
+        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Modo Actual: <span id="modeDescription" class="text-white font-normal">Votación Simple sin Rúbrica (Calificación directa 0 al 10)</span></h3>
         <span id="rubricCountBadge" class="hidden text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-0.5 rounded-full font-bold"></span>
       </div>
       <div id="rubricCriteriaList" class="flex flex-wrap gap-2 text-xs text-slate-300"></div>
     </div>
 
+    <!-- Grilla Principal: Grupos (Izquierda) y Resultados / Gráfico (Derecha) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Columna Grupos -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl space-y-4">
-        <h2 class="font-bold text-slate-200 text-lg border-b border-slate-700 pb-3 flex justify-between items-center">
-          <span>Grupos de Clase</span>
+        <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
+          <div>
+            <h2 class="font-bold text-slate-200 text-lg">Grupos de Clase</h2>
+            <p class="text-xs text-slate-400">Gestiona, edita o resetea votos de cada equipo</p>
+          </div>
           <span id="groupCountBadge" class="bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded-full font-mono">0</span>
-        </h2>
-        <div id="groupsList" class="space-y-3 max-h-[450px] overflow-y-auto pr-1"></div>
+        </div>
+        <div id="groupsList" class="space-y-3 max-h-[520px] overflow-y-auto pr-1"></div>
       </div>
 
+      <!-- Columna Resultados y Estadísticas -->
       <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl flex flex-col space-y-6">
-        <h2 class="font-bold text-slate-200 text-lg border-b border-slate-700 pb-3 flex justify-between items-center">
-          <span>Resultados Generales (Nota Media 1-10)</span>
-          <button onclick="handleResetSession()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-xl">Borrar Sesión Completa</button>
-        </h2>
+        <div class="border-b border-slate-700 pb-3 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h2 class="font-bold text-slate-200 text-lg">Resultados Generales (Nota Media 0-10)</h2>
+            <p class="text-xs text-slate-400">Promedio en vivo de las calificaciones recibidas</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportToCSV()" title="Descargar informe en formato CSV compatible con Excel" class="text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl font-semibold transition flex items-center gap-1.5">
+              <span>📥</span> Exportar CSV
+            </button>
+            <button onclick="handleResetSession()" class="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-1.5 rounded-xl font-semibold transition">
+              Borrar Sesión Completa
+            </button>
+          </div>
+        </div>
         
+        <!-- Tarjetas de métricas del grupo activo -->
         <div class="grid grid-cols-3 gap-4">
           <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 text-center">
-            <span class="text-xs text-slate-400 font-medium">Total Votos</span>
+            <span class="text-xs text-slate-400 font-medium">Total Votos (Activo)</span>
             <p id="statTotalVotes" class="text-3xl font-extrabold text-indigo-400 mt-1">0</p>
           </div>
           <div class="bg-slate-900/60 border border-slate-700/50 rounded-xl p-4 text-center">
@@ -143,6 +200,18 @@
           </div>
         </div>
 
+        <!-- Desglose de Rúbrica para el Grupo Activo -->
+        <div id="activeGroupCriteriaBreakdown" class="hidden bg-slate-900/70 border border-amber-500/30 rounded-xl p-4 space-y-2.5">
+          <div class="flex justify-between items-center text-xs text-amber-400 font-bold border-b border-amber-500/20 pb-2">
+            <span class="flex items-center gap-1.5">
+              <span>📊</span> Desglose de Criterios (Equipo Activo)
+            </span>
+            <span id="rubricBreakdownVotesBadge" class="text-slate-400 font-normal">0 evaluaciones</span>
+          </div>
+          <div id="criteriaBreakdownList" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs"></div>
+        </div>
+
+        <!-- Gráfico Comparativo -->
         <div class="flex-1 min-h-[260px] bg-slate-900/40 rounded-xl p-4 border border-slate-700/40 flex items-center justify-center">
           <canvas id="resultsChart"></canvas>
         </div>
@@ -154,6 +223,7 @@
     let appData = { votingActive: false, activeGroupIndex: null, groups: [], rubricCriteria: [] };
     let chartInstance = null;
     let socket = null;
+    let editingGroupIndex = null;
 
     if (sessionStorage.getItem('teacher_auth') === 'true') {
       unlockTeacherPanel();
@@ -188,7 +258,9 @@
           appData = data;
           render();
         });
-      } catch(e) {}
+      } catch(e) {
+        console.error('Error al conectar Socket.io:', e);
+      }
     }
 
     function handleLoadRubricFile(event) {
@@ -210,12 +282,14 @@
         }
       };
       reader.readAsText(file);
+      event.target.value = '';
     }
 
     function handleClearRubric() {
-      if (socket) {
-        socket.emit('clearRubric');
-        alert('Rúbrica reiniciada. Los alumnos valorarán directamente del 1 al 10.');
+      if (confirm('¿Reiniciar rúbrica? Se volverá al modo de votación simple 0 al 10.')) {
+        if (socket) {
+          socket.emit('clearRubric');
+        }
       }
     }
 
@@ -228,8 +302,62 @@
       input.value = '';
     }
 
+    function openEditModal(idx) {
+      if (idx < 0 || idx >= appData.groups.length) return;
+      editingGroupIndex = idx;
+      const group = appData.groups[idx];
+      document.getElementById('editGroupNameInput').value = group.name;
+      document.getElementById('editGroupModal').classList.remove('hidden');
+      setTimeout(() => {
+        const input = document.getElementById('editGroupNameInput');
+        input.focus();
+        input.select();
+      }, 50);
+    }
+
+    function closeEditModal() {
+      editingGroupIndex = null;
+      document.getElementById('editGroupModal').classList.add('hidden');
+    }
+
+    function handleSaveGroupEdit(e) {
+      if (e) e.preventDefault();
+      if (editingGroupIndex === null) return;
+      const newName = document.getElementById('editGroupNameInput').value.trim();
+      if (!newName) {
+        alert('El nombre del grupo no puede estar vacío.');
+        return;
+      }
+      if (socket) {
+        socket.emit('editGroup', { index: editingGroupIndex, newName });
+      }
+      closeEditModal();
+    }
+
+    // Cerrar modal de edición con Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeEditModal();
+    });
+
+    function handleResetGroupVotes(idx) {
+      if (idx < 0 || idx >= appData.groups.length) return;
+      const group = appData.groups[idx];
+      const count = group.votes ? group.votes.length : 0;
+      const msg = count > 0
+        ? `¿Seguro que deseas borrar TODOS los votos del equipo "${group.name}"?\n\nActualmente tiene ${count} voto(s). Los votos de los demás equipos permanecerán intactos y los alumnos podrán votar de nuevo a este equipo.`
+        : `El equipo "${group.name}" no tiene votos registrados. ¿Deseas reiniciar su marcador?`;
+
+      if (confirm(msg)) {
+        if (socket) socket.emit('resetGroupVotes', idx);
+      }
+    }
+
     function handleRemoveGroup(idx) {
-      if (socket) socket.emit('removeGroup', idx);
+      if (idx < 0 || idx >= appData.groups.length) return;
+      const group = appData.groups[idx];
+      if (confirm(`¿Eliminar por completo al grupo "${group.name}" de la lista?`)) {
+        if (socket) socket.emit('removeGroup', idx);
+      }
     }
 
     function handleSelectActive(idx) {
@@ -241,15 +369,69 @@
     }
 
     function handleResetSession() {
-      if (confirm('¿Reiniciar toda la sesión? (Borrará grupos y restablecerá la votación simple)')) {
+      if (confirm('⚠️ ¿Reiniciar toda la sesión? Esto borrará TODOS los grupos, votos y restablecerá la votación simple.')) {
         if (socket) socket.emit('resetSession');
       }
+    }
+
+    function exportToCSV() {
+      if (!appData.groups || appData.groups.length === 0) {
+        alert('No hay grupos cargados para exportar.');
+        return;
+      }
+
+      const isRubricActive = appData.rubricCriteria && appData.rubricCriteria.length > 0;
+      let headers = ['Posición', 'Nombre del Grupo', 'Votos Totales', 'Nota Media Final'];
+      
+      if (isRubricActive) {
+        appData.rubricCriteria.forEach((crit, i) => {
+          headers.push(`Criterio ${i + 1}: ${crit.replace(/"/g, '""')}`);
+        });
+      }
+
+      const rows = appData.groups.map((g, idx) => {
+        const row = [
+          idx + 1,
+          `"${(g.name || '').replace(/"/g, '""')}"`,
+          g.votes ? g.votes.length : 0,
+          g.avgScore || '0.0'
+        ];
+
+        if (isRubricActive) {
+          for (let i = 0; i < appData.rubricCriteria.length; i++) {
+            const score = (g.criteriaAvgs && g.criteriaAvgs[i] !== undefined) ? g.criteriaAvgs[i] : '-';
+            row.push(score);
+          }
+        }
+        return row.join(';');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `coevaluacion_notas_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function render() {
       const isRubricActive = appData.rubricCriteria && appData.rubricCriteria.length > 0;
       
-      document.getElementById('evalModeBadge').textContent = isRubricActive ? `Rúbrica (${appData.rubricCriteria.length} Criterios)` : "Votación Simple 1-10";
+      document.getElementById('evalModeBadge').textContent = isRubricActive ? `Rúbrica (${appData.rubricCriteria.length} Criterios)` : "Votación Simple 0-10";
       document.getElementById('evalModeBadge').className = isRubricActive ? "font-bold text-amber-400" : "font-bold text-indigo-400";
 
       const criteriaContainer = document.getElementById('rubricCriteriaList');
@@ -262,15 +444,16 @@
         countBadge.textContent = `${appData.rubricCriteria.length} Criterios`;
         criteriaContainer.innerHTML = appData.rubricCriteria.map((c, i) => `
           <span class="bg-slate-900 border border-amber-500/20 px-3 py-1.5 rounded-xl text-amber-300/90 font-medium">
-            ${i+1}. ${c}
+            ${i+1}. ${escapeHtml(c)}
           </span>
         `).join('');
       } else {
-        modeDesc.textContent = "Votación Simple sin Rúbrica (Calificación directa 1 al 10)";
+        modeDesc.textContent = "Votación Simple sin Rúbrica (Calificación directa 0 al 10)";
         countBadge.classList.add('hidden');
-        criteriaContainer.innerHTML = `<p class="text-slate-500 text-xs italic">No hay archivo de rúbrica cargado. Los alumnos puntúan con un único selector del 1 al 10.</p>`;
+        criteriaContainer.innerHTML = `<p class="text-slate-500 text-xs italic">No hay archivo de rúbrica cargado. Los alumnos puntúan con un selector directo del 0 al 10.</p>`;
       }
 
+      // Lista de grupos
       const listEl = document.getElementById('groupsList');
       document.getElementById('groupCountBadge').textContent = appData.groups.length;
 
@@ -279,47 +462,87 @@
       } else {
         listEl.innerHTML = appData.groups.map((g, idx) => {
           const isActive = appData.activeGroupIndex === idx;
+          const votesCount = g.votes ? g.votes.length : 0;
           return `
-            <div class="flex items-center justify-between p-3.5 rounded-xl border transition ${isActive ? 'bg-indigo-950/60 border-indigo-500/50' : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'}">
-              <div class="flex items-center gap-3">
-                <button onclick="handleSelectActive(${idx})" class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+            <div class="flex items-center justify-between p-3 rounded-xl border transition ${isActive ? 'bg-indigo-950/60 border-indigo-500/60 ring-1 ring-indigo-500/40 shadow-lg' : 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'}">
+              <div class="flex items-center gap-3 min-w-0 mr-2 flex-1">
+                <button onclick="handleSelectActive(${idx})" title="Seleccionar para exponer" class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 transition ${isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/40' : 'bg-slate-800 text-slate-400 hover:text-white'}">
                   ${idx + 1}
                 </button>
-                <div>
-                  <h4 class="font-semibold text-sm text-white">${g.name}</h4>
-                  <p class="text-xs text-slate-400">${g.votes.length} votos • Media: <span class="font-bold text-emerald-400">${g.avgScore}</span></p>
+                <div class="min-w-0 flex-1">
+                  <h4 class="font-semibold text-sm text-white truncate" title="${escapeHtml(g.name)}">${escapeHtml(g.name)}</h4>
+                  <p class="text-xs text-slate-400">
+                    <span class="${votesCount > 0 ? 'text-indigo-300 font-medium' : ''}">${votesCount} votos</span> • Media: <span class="font-bold text-emerald-400">${g.avgScore}</span>
+                  </p>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="handleSelectActive(${idx})" class="text-xs px-3 py-1.5 rounded-lg border font-semibold ${isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}">
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="handleSelectActive(${idx})" title="Activar grupo para exponer" class="text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition ${isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}">
                   ${isActive ? 'Activo' : 'Presentar'}
                 </button>
-                <button onclick="handleRemoveGroup(${idx})" class="text-slate-500 hover:text-rose-400 p-1.5">✕</button>
+                <button onclick="openEditModal(${idx})" title="Editar nombre del equipo" class="text-xs p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-indigo-400 hover:border-indigo-500/50 transition">
+                  ✏️
+                </button>
+                <button onclick="handleResetGroupVotes(${idx})" title="Borrar solo los votos de este equipo" class="text-xs p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-amber-400 hover:border-amber-500/50 transition">
+                  🧹
+                </button>
+                <button onclick="handleRemoveGroup(${idx})" title="Eliminar equipo de la lista" class="text-xs p-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/50 transition">
+                  🗑️
+                </button>
               </div>
             </div>
           `;
         }).join('');
       }
 
+      // Grupo activo y estadísticas
       const activeGroup = appData.groups[appData.activeGroupIndex];
       const activeNameEl = document.getElementById('activeGroupName');
       const toggleBtn = document.getElementById('toggleVoteBtn');
+      const criteriaBreakdownEl = document.getElementById('activeGroupCriteriaBreakdown');
 
       if (activeGroup) {
         activeNameEl.textContent = activeGroup.name;
         toggleBtn.disabled = false;
         if (appData.votingActive) {
-          toggleBtn.textContent = 'Pausar Votación';
-          toggleBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-600/30';
+          toggleBtn.textContent = '⏸️ Pausar Votación';
+          toggleBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-600/30 animate-pulse';
         } else {
-          toggleBtn.textContent = 'Activar Votación';
+          toggleBtn.textContent = '▶️ Activar Votación';
           toggleBtn.className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-600/30';
         }
 
-        document.getElementById('statTotalVotes').textContent = activeGroup.votes.length;
+        const votesLen = activeGroup.votes ? activeGroup.votes.length : 0;
+        document.getElementById('statTotalVotes').textContent = votesLen;
         document.getElementById('statAvgScore').textContent = activeGroup.avgScore;
-        const max = activeGroup.votes.length ? Math.max(...activeGroup.votes.map(v => v.overallScore)).toFixed(1) : '-';
+        const max = votesLen ? Math.max(...activeGroup.votes.map(v => v.overallScore)).toFixed(1) : '-';
         document.getElementById('statMaxScore').textContent = max;
+
+        // Desglose de rúbrica para el grupo activo
+        if (isRubricActive && activeGroup.criteriaAvgs && activeGroup.criteriaAvgs.length > 0) {
+          criteriaBreakdownEl.classList.remove('hidden');
+          document.getElementById('rubricBreakdownVotesBadge').textContent = `${votesLen} voto(s)`;
+          const listContainer = document.getElementById('criteriaBreakdownList');
+          listContainer.innerHTML = appData.rubricCriteria.map((c, i) => {
+            const avg = activeGroup.criteriaAvgs[i] || '0.0';
+            const numAvg = parseFloat(avg) || 0;
+            const pct = Math.min(100, Math.max(0, numAvg * 10));
+            return `
+              <div class="bg-slate-950/40 p-2 rounded-lg border border-slate-800">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="truncate font-medium text-slate-300 mr-2" title="${escapeHtml(c)}">${i + 1}. ${escapeHtml(c)}</span>
+                  <span class="font-bold text-amber-300 font-mono">${avg}</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-amber-400 h-1.5 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          criteriaBreakdownEl.classList.add('hidden');
+        }
+
       } else {
         activeNameEl.textContent = 'Ninguno seleccionado';
         toggleBtn.disabled = true;
@@ -327,6 +550,7 @@
         document.getElementById('statTotalVotes').textContent = '0';
         document.getElementById('statAvgScore').textContent = '0.0';
         document.getElementById('statMaxScore').textContent = '-';
+        criteriaBreakdownEl.classList.add('hidden');
       }
 
       updateChart();
@@ -343,7 +567,7 @@
           data: {
             labels: labels,
             datasets: [{
-              label: 'Nota Media Final (1-10)',
+              label: 'Nota Media Final (0-10)',
               data: dataScores,
               backgroundColor: 'rgba(99, 102, 241, 0.7)',
               borderColor: 'rgba(129, 140, 248, 1)',

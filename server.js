@@ -57,6 +57,9 @@ io.on('connection', (socket) => {
 
   socket.on('clearRubric', () => {
     appState.rubricCriteria = [];
+    appState.groups.forEach(g => {
+      g.criteriaAvgs = [];
+    });
     io.emit('stateUpdate', appState);
   });
 
@@ -71,13 +74,33 @@ io.on('connection', (socket) => {
     io.emit('stateUpdate', appState);
   });
 
+  socket.on('editGroup', ({ index, newName }) => {
+    const idx = Number(index);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= appState.groups.length) return;
+    if (!newName || typeof newName !== 'string') return;
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    appState.groups[idx].name = trimmed;
+    io.emit('stateUpdate', appState);
+  });
+
+  socket.on('resetGroupVotes', (index) => {
+    const idx = Number(index);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= appState.groups.length) return;
+    appState.groups[idx].votes = [];
+    appState.groups[idx].avgScore = "0.0";
+    appState.groups[idx].criteriaAvgs = [];
+    io.emit('stateUpdate', appState);
+  });
+
   socket.on('removeGroup', (index) => {
-    if (index >= 0 && index < appState.groups.length) {
-      appState.groups.splice(index, 1);
-      if (appState.activeGroupIndex === index) {
+    const idx = Number(index);
+    if (idx >= 0 && idx < appState.groups.length) {
+      appState.groups.splice(idx, 1);
+      if (appState.activeGroupIndex === idx) {
         appState.activeGroupIndex = null;
         appState.votingActive = false;
-      } else if (appState.activeGroupIndex > index) {
+      } else if (appState.activeGroupIndex > idx) {
         appState.activeGroupIndex--;
       }
       io.emit('stateUpdate', appState);
@@ -85,8 +108,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('setActiveGroup', (index) => {
-    if (index >= 0 && index < appState.groups.length) {
-      appState.activeGroupIndex = index;
+    const idx = Number(index);
+    if (idx >= 0 && idx < appState.groups.length) {
+      appState.activeGroupIndex = idx;
       appState.votingActive = true;
       io.emit('stateUpdate', appState);
     }
@@ -118,11 +142,12 @@ io.on('connection', (socket) => {
     if (appState.rubricCriteria.length > 0 && Array.isArray(scores)) {
       if (scores.length !== appState.rubricCriteria.length) return;
       scoresList = scores.map(Number);
+      if (scoresList.some(s => isNaN(s) || s < 0 || s > 10)) return;
       const sum = scoresList.reduce((a, b) => a + b, 0);
       overallScore = sum / scoresList.length;
-    } else if (score !== undefined) {
+    } else if (score !== undefined && score !== null) {
       const numScore = Number(score);
-      if (isNaN(numScore) || numScore < 1 || numScore > 10) return;
+      if (isNaN(numScore) || numScore < 0 || numScore > 10) return;
       overallScore = numScore;
     } else {
       return;
@@ -143,14 +168,20 @@ io.on('connection', (socket) => {
     if (appState.rubricCriteria.length > 0) {
       const numCriteria = appState.rubricCriteria.length;
       const criteriaSums = new Array(numCriteria).fill(0);
+      let validRubricCount = 0;
       group.votes.forEach(v => {
         if (v.scores && v.scores.length === numCriteria) {
+          validRubricCount++;
           v.scores.forEach((sc, idx) => {
             criteriaSums[idx] += sc;
           });
         }
       });
-      group.criteriaAvgs = criteriaSums.map(sum => (sum / group.votes.length).toFixed(1));
+      group.criteriaAvgs = validRubricCount > 0 
+        ? criteriaSums.map(sum => (sum / validRubricCount).toFixed(1))
+        : [];
+    } else {
+      group.criteriaAvgs = [];
     }
 
     io.emit('stateUpdate', appState);
